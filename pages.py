@@ -1,5 +1,6 @@
 """Module to retrieve list of all English Wikipedia articles"""
 
+from collections import defaultdict
 import json
 import time
 from bs4 import BeautifulSoup
@@ -75,5 +76,33 @@ def get_pages(start_from: str = None) -> Dict[str, str]:
     return articles
 
 
+def sort_cache():
+    """Sorts `articles.json` into separate, alphabetical files.
+    
+    A precondition of this function is that `get_pages()` has been
+    run, and `articles.json` is not empty.
+    """
+    print("Sorting cache...", end="", flush=True)
+    # Go through the data
+    with open(STORAGE_LINK + "articles.json", "r") as data:
+        articles = json.load(data)
+        new_articles: Dict[str, Dict[str, str]] = defaultdict(dict)  # "letter": {"title": "href"}
+        for title, href in articles.items():
+            first_char = title[0].lower()
+            if first_char not in "0123456789abcdefghijklmnopqrstuvwxyz":
+                new_articles["other"][title] = href     # First letter is not number or character
+                continue
+            if first_char.isnumeric():
+                new_articles["num"][title] = href       # First letter is a number
+            else:
+                new_articles[first_char][title] = href  # First letter is character
+    # Rewrite the data
+    for letter, letters_articles in new_articles.items():
+        with open(f"{STORAGE_LINK}articles_{letter}.json", "w+") as outfile:
+            json.dump(letters_articles, outfile, indent=4, sort_keys=True)
+    print("Done")
+
+
 if __name__=="__main__":
     get_pages()
+    sort_cache()
