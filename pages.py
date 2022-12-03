@@ -37,10 +37,10 @@ def get_pages(start_from: str = None) -> Dict[str, str]:
         else URL
     )
     soup = BeautifulSoup(requests.get(url).text, 'html.parser')
-    with open(STORAGE_LINK + "articles.json", "r") as raw:
-        data = json.load(raw)
-        if input("Would you like to use cache? (y/n) ").lower() == 'y':
-            print("Returning cached article list...")
+    if input("Would you like to use cache? (y/n) ").lower() == 'y':
+        print("Returning cached article list...")
+        with open(STORAGE_LINK + "articles.json", "r") as raw:
+            data = json.load(raw)
             return data
     # Iterate through Wikipedia pages for answer
     next = None
