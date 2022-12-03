@@ -7,7 +7,7 @@ import requests
 from typing import Dict
 
 
-URL = "https://en.wikipedia.org/wiki/Category:All_Wikipedia_articles_written_in_American_English"
+URL = "https://en.wikipedia.org/w/index.php?title=Special:AllPages"
 BASE = "https://en.wikipedia.org"
 STORAGE_LINK = "cache/"
 
@@ -29,42 +29,36 @@ def get_pages(start_from: str = None) -> Dict[str, str]:
     """
     # Initialize
     articles: Dict[str, str] = {}  # List of links
-    url = (BASE 
-            + "/w/index.php?title=Category:All_Wikipedia_articles_written_in_American_English&pagefrom=" 
+    url = (URL 
+            + "&from=" 
             + start_from 
-            + "#mw-pages" 
         if start_from 
         else URL
     )
     soup = BeautifulSoup(requests.get(url).text, 'html.parser')
-    total = int(soup.find('div', attrs={'id': 'mw-pages'}).find('p').text.split("approximately ", 1)[1].split(" total", 1)[0].replace(',', ''))
-    # If total == our cache, just return that
     with open(STORAGE_LINK + "articles.json", "r") as raw:
         data = json.load(raw)
-        if len(data) == total:
-            print("No change since last retrieval. Returning cached article list...")
+        if input("Would you like to use cache? (y/n) ").lower() == 'y':
+            print("Returning cached article list...")
             return data
     # Iterate through Wikipedia pages for answer
     next = None
     try:
         while True:
             # Get each article (<a> tag) from the list
-            for link in soup.find('div', attrs={'class': "mw-category mw-category-columns"}).find_all('a'):
+            for link in soup.find('ul', attrs={'class': "mw-allpages-chunk"}).find_all('a'):
+                if link.has_attr('class') and link['class'][0] == "mw-redirect": continue
                 title = link.get('title')
                 href = link.get('href')
                 articles[title] = BASE + href
                 print(title, flush=True)
             # Get the 'next page' link and go there
-            next = [
-                BASE + link.get('href') 
-                for link 
-                in soup.find('div', attrs={'id': 'mw-pages'}).find_all('a') 
-                if link.text == 'next page'
-            ]
-            if not next: break
-            soup = BeautifulSoup(requests.get(next[0]).text, 'html.parser')
+            next_tag = soup.find('div', attrs={'class': "mw-allpages-nav"}).find_all('a')[-1]
+            if "Previous" in next_tag.text: break
+            next = BASE + next_tag.get('href')
+            soup = BeautifulSoup(requests.get(next).text, 'html.parser')
     except Exception as e:
-        print("Error hit. Attempting reconnection in 10 seconds...")
+        print(f"Error hit:\n{e}\n\nAttempting reconnection in 10 seconds...")
         time.sleep(10)
         return get_pages(next)
     finally:
