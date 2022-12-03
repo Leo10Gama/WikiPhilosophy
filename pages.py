@@ -82,4 +82,4 @@ def get_pages(start_from: str = None) -> Dict[str, str]:
 
 
 if __name__=="__main__":
-    get_pages("Interstate+75+in+Georgia")
+    get_pages()
