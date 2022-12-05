@@ -10,7 +10,7 @@ from typing import Dict
 
 URL = "https://en.wikipedia.org/w/index.php?title=Special:AllPages"
 BASE = "https://en.wikipedia.org"
-STORAGE_LINK = "cache/"
+STORAGE_LINK = "cache/articles/"
 
 
 def get_pages(start_from: str = None) -> Dict[str, str]:
