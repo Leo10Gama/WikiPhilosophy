@@ -61,7 +61,12 @@ def parse_page(page: Page) -> Tuple[Page, Edge]:
     article = None
     if divs: article = divs.find('div', attrs={"class": "mw-parser-output"})  # get soup
 
-    if not divs or not article:  # empty article (potentially removed)
+    if not divs or not article:   # empty article or timeout
+        if divs: pass             # page doesn't exist
+        elif soup.find('title'):  # server down or misconnection
+            logging.warning('Servers down or experiencing technical problem for %s. Sleeping for 30s and trying again...', page.title)
+            time.sleep(30)
+            return parse_page(page)
         logging.warning('No article found for %s. Skipping...', page.title)
         return Page("", ""), Edge("", "")
 
@@ -75,16 +80,23 @@ def parse_page(page: Page) -> Tuple[Page, Edge]:
                 if not a_tag or not a_tag.has_attr("title"): continue  # check tag exists and has a title
                 title = a_tag['title']
                 href = BASE + a_tag['href']
+                if (
+                    a_tag['href'].startswith("/wiki/Help:") 
+                    or a_tag['href'].startswith("/wiki/Wikipedia:")
+                    or a_tag['href'].startswith("https://")
+                ): continue   # links to not-an-article
                 if a_tag.has_attr("class"):
                     if a_tag['class'][0] == "new":          # links to page that doesn't exist, skip
                         continue
                     if a_tag['class'][0] == "mw-redirect":  # links to redirect, follow it for new Page
                         new_soup = BeautifulSoup(requests.get(BASE + a_tag['href']).text, 'html.parser')
-                        if not new_soup:
+                        some_head = None
+                        if new_soup: some_head = new_soup.find('h1', attrs={"id": "firstHeading"})
+                        if not new_soup or not some_head:
                             logging.info("Timed out trying to reach %s. Sleeping for 10 seconds and trying again...", page.title)
                             time.sleep(10)
                             return parse_page(page)
-                        head = new_soup.find('h1', attrs={"id": "firstHeading"})
+                        head = some_head
                         title = head.text
                         href = get_url_from_title(title)
                 linked_page = Page(title, href)
@@ -163,7 +175,7 @@ def parse_articles(articles_path: str, file_extension: str = "", cont: bool = Fa
     try:
         for title, href in articles.items():
             # logging.info("Parsing %s...", title)
-            print(f"{file_extension.upper():5} ({counter:6}/{total_articles:6} = {floor(counter * 100 / total_articles * 100) / 100:5.2}%) Parsing {title}")
+            print(f"{file_extension.upper():5} ({counter:6}/{total_articles:6} = {floor(counter * 100 / total_articles * 100) / 100:5.2f}%) Parsing {title}")
             p, _ = parse_page(Page(title, href))
             edges[title] = p.title
             counter += 1
@@ -189,13 +201,17 @@ if __name__=="__main__":
     items = list("abcdefghijklmn") + ["num", "o", "other"] + list("pqrstuvwxyz")
     article_links = [f"cache/articles/articles_{x}.json" for x in items]
 
-    with Pool(28) as p:
-        logging.info("Starting multiprocessor thread for articles.")
-        for edge_batch, extension in p.starmap(parse_articles, zip(article_links, items, [True for _ in range(28)])):
-            filename = f"{STORAGE_LINK}edges_{extension}.json"
-            with open(filename, "w+") as outfile:
-                logging.info("Writing articles '%s' to '%s'...", extension, filename)
-                json.dump(edge_batch, outfile, indent=4, sort_keys=True)
+    try:
+        with Pool(28) as p:
+            logging.info("Starting multiprocessor thread for articles.")
+            for edge_batch, extension in p.starmap(parse_articles, zip(article_links, items, [True for _ in range(28)])):
+                filename = f"{STORAGE_LINK}edges_{extension}.json"
+                with open(filename, "w+") as outfile:
+                    logging.info("Writing articles '%s' to '%s'...", extension, filename)
+                    json.dump(edge_batch, outfile, indent=4, sort_keys=True)
+    except KeyboardInterrupt:
+        time.sleep(3)  # give time for threads to write
+        
 
     # for link, extension in zip(article_links, items):
     #     for edge_batch in parse_articles(link, extension, True)
