@@ -201,6 +201,17 @@ def parse_articles(articles_path: str, file_extension: str = "", cont: bool = Fa
         return edges, file_extension
 
 
+def cleanup(filename: str):
+    """Cleanup method to remove articles that don't point to anything."""
+
+    edges = {}  # make file
+    with open(filename, "r") as infile:
+        edges = json.load(infile)  # read in json
+    edges = {k: v for k, v in edges.items() if v != ""}  # remove empty items
+    with open(filename, "w+") as outfile:
+        json.dump(edges, outfile, indent=4, sort_keys=True)  # rewrite json
+
+
 if __name__=="__main__":
     items = list("abcdefghijklmn") + ["num", "o", "other"] + list("pqrstuvwxyz")
     article_links = [f"cache/articles/articles_{x}.json" for x in items]
@@ -213,8 +224,14 @@ if __name__=="__main__":
                 with open(filename, "w+") as outfile:
                     write_logger.info("Writing articles '%s' to '%s'...", extension, filename)
                     json.dump(edge_batch, outfile, indent=4, sort_keys=True)
+
+        # for extension in items:
+        #     filename = f"{STORAGE_LINK}edges_{extension}.json"
+        #     cleanup(filename)
+
     except KeyboardInterrupt:
-        time.sleep(3)  # give time for threads to write
+        # time.sleep(3)  # give time for threads to write
+        pass
         
 
     # for link, extension in zip(article_links, items):
