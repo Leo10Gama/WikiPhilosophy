@@ -2,6 +2,7 @@
 
 
 import json
+from random import choice
 from typing import Dict, List, Optional
 
 from graph import Edge, Page
@@ -80,15 +81,19 @@ def get_path_to_philosophy(target: str, pages: List[Page], edges: List[Edge]) ->
 def main():
     """The main method for running test queries."""
     QUIT_INPUT = 'q'  # the command to close the process
+    RAND_INPUT = '?'  # the command to get a random page
 
     articles = get_articles()
     edges = get_edges()
 
     while True:
-        target = input(f"Enter the name of an article to path ({QUIT_INPUT} to quit): ")
+        target = input(f"Enter the name of an article to path ({QUIT_INPUT} to quit, {RAND_INPUT} for random article): ")
         if target.lower() == QUIT_INPUT:
             print("Closing application...")
             return
+        if target.lower() == RAND_INPUT:
+            target = choice(articles).title
+            print(f"Choosing random article '{target}'")
         path = get_path_to_philosophy(target, articles, edges)
         if not path:
             print(f"No path could be found from {target} to Philosophy. Did you enter the article title correctly?")

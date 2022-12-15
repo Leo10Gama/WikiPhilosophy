@@ -114,9 +114,7 @@ def parse_page(page: Page) -> Tuple[Page, Edge]:
     for table in article.select("table"):  # we don't need tables; also prevents accidentally grabbing sidebar
         table.extract()
 
-    p, e = parse_chunk(article.find_all('p'))   # check all paragraphs (case for like 99% of articles)
-    if p and e: return p, e
-    p, e = parse_chunk(article.find_all('ul'))  # check lists
+    p, e = parse_chunk(article.find_all(['p', 'ul']))   # check all paragraphs (case for like 99% of articles) and list items
     if p and e: return p, e
 
     no_link_logger.warning("Found article without any links: %s", page.title)
@@ -212,7 +210,7 @@ def cleanup(filename: str):
     edges = {}  # make file
     with open(filename, "r") as infile:
         edges = json.load(infile)  # read in json
-    edges = {k: v for k, v in edges.items() if v != "Geographic coordinate system"}  # remove items with name
+    edges = {k: v for k, v in edges.items() if v != "Paleolithic Europe"}  # remove items with name
     with open(filename, "w+") as outfile:
         json.dump(edges, outfile, indent=4, sort_keys=True)  # rewrite json
 
@@ -221,28 +219,28 @@ if __name__=="__main__":
     items = list("abcdefghijklmn") + ["num", "o", "other"] + list("pqrstuvwxyz")
     article_links = [f"cache/articles/articles_{x}.json" for x in items]
 
-    # try:
-    #     # Run method
-    #     with Pool(28) as p:
-    #         write_logger.info("Starting multiprocessor thread for articles.")
-    #         for edge_batch, extension in p.starmap(parse_articles, zip(article_links, items, [True for _ in range(28)])):
-    #             filename = f"{STORAGE_LINK}edges_{extension}.json"
-    #             with open(filename, "w+") as outfile:
-    #                 write_logger.info("Writing articles '%s' to '%s'...", extension, filename)
-    #                 json.dump(edge_batch, outfile, indent=4, sort_keys=True)
+    try:
+        # Run method
+        with Pool(28) as p:
+            write_logger.info("Starting multiprocessor thread for articles.")
+            for edge_batch, extension in p.starmap(parse_articles, zip(article_links, items, [True for _ in range(28)])):
+                filename = f"{STORAGE_LINK}edges_{extension}.json"
+                with open(filename, "w+") as outfile:
+                    write_logger.info("Writing articles '%s' to '%s'...", extension, filename)
+                    json.dump(edge_batch, outfile, indent=4, sort_keys=True)
 
-    #     # # Do cleanup
-    #     # for extension in items:
-    #     #     filename = f"{STORAGE_LINK}edges_{extension}.json"
-    #     #     print(f"Cleaning {extension} files...")
-    #     #     cleanup(filename)
+        # # Do cleanup
+        # for extension in items:
+        #     filename = f"{STORAGE_LINK}edges_{extension}.json"
+        #     print(f"Cleaning {extension} files...")
+        #     cleanup(filename)
 
-    # except KeyboardInterrupt:
-    #     # time.sleep(3)  # give time for threads to write
-    #     pass
+    except KeyboardInterrupt:
+        # time.sleep(3)  # give time for threads to write
+        pass
         
 
     # for link, extension in zip(article_links, items):
     #     for edge_batch in parse_articles(link, extension, True)
 
-    print(parse_page(Page("Test", "https://en.wikipedia.org/wiki/Logic"))[0].title)
+    # print(parse_page(Page("Test", "https://en.wikipedia.org/wiki/Candidate"))[0].title)
