@@ -35,18 +35,19 @@ class Edge:
     
     In the context of this program, an "edge" is a directed
     relationship, where the first Page's hyperlink links to
-    the second Page.
+    the second Page. However, only the title of the page is
+    needed.
     """
 
-    base_page: Page = None
-    linked_page: Page = None
+    base_page: str = None
+    linked_page: str = None
 
-    def __init__(self, page1: Page, page2: Page):
+    def __init__(self, page1: str, page2: str):
         self.base_page = page1
         self.linked_page = page2
 
     def to_tuple(self) -> Tuple[str, str]:
-        return (self.base_page.href, self.linked_page.href)
+        return (self.base_page, self.linked_page)
 
 
 write_logger = setup_logger("Write Files", "write.log")  # Log for when files are written to
@@ -81,6 +82,7 @@ def parse_page(page: Page) -> Tuple[Page, Edge]:
         for chunk in chunks:
             if not str(chunk): continue
             text = remove_brackets(str(chunk))  # remove content in brackets
+            if BeautifulSoup(text, 'html.parser').find('span', attrs={'id': 'coordinates'}): continue  # skip over coordinates
             a_tags = BeautifulSoup(text, 'html.parser').find_all('a')  # gets the first result
             for a_tag in a_tags:
                 if not a_tag or not a_tag.has_attr("title"): continue  # check tag exists and has a title
@@ -207,7 +209,7 @@ def cleanup(filename: str):
     edges = {}  # make file
     with open(filename, "r") as infile:
         edges = json.load(infile)  # read in json
-    edges = {k: v for k, v in edges.items() if v != ""}  # remove empty items
+    edges = {k: v for k, v in edges.items() if v != "Geographic coordinate system"}  # remove items with name
     with open(filename, "w+") as outfile:
         json.dump(edges, outfile, indent=4, sort_keys=True)  # rewrite json
 
@@ -217,6 +219,7 @@ if __name__=="__main__":
     article_links = [f"cache/articles/articles_{x}.json" for x in items]
 
     try:
+        # Run method
         with Pool(28) as p:
             write_logger.info("Starting multiprocessor thread for articles.")
             for edge_batch, extension in p.starmap(parse_articles, zip(article_links, items, [True for _ in range(28)])):
@@ -225,8 +228,10 @@ if __name__=="__main__":
                     write_logger.info("Writing articles '%s' to '%s'...", extension, filename)
                     json.dump(edge_batch, outfile, indent=4, sort_keys=True)
 
+        # # Do cleanup
         # for extension in items:
         #     filename = f"{STORAGE_LINK}edges_{extension}.json"
+        #     print(f"Cleaning {extension} files...")
         #     cleanup(filename)
 
     except KeyboardInterrupt:
@@ -237,4 +242,4 @@ if __name__=="__main__":
     # for link, extension in zip(article_links, items):
     #     for edge_batch in parse_articles(link, extension, True)
 
-    # print(parse_page(Page("Test", "https://en.wikipedia.org/wiki/Trans-Neptunian_object"))[0].title)
+    # print(parse_page(Page("Test", "https://en.wikipedia.org/wiki/Yakima_County_Stadium"))[0].title)
