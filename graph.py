@@ -210,7 +210,7 @@ def cleanup(filename: str):
     edges = {}  # make file
     with open(filename, "r") as infile:
         edges = json.load(infile)  # read in json
-    edges = {k: v for k, v in edges.items() if v != "Paleolithic Europe"}  # remove items with name
+    edges = {k: v for k, v in edges.items() if " language" not in v}  # remove items with name
     with open(filename, "w+") as outfile:
         json.dump(edges, outfile, indent=4, sort_keys=True)  # rewrite json
 
@@ -220,6 +220,12 @@ if __name__=="__main__":
     article_links = [f"cache/articles/articles_{x}.json" for x in items]
 
     try:
+        # Do cleanup
+        for extension in items:
+            filename = f"{STORAGE_LINK}edges_{extension}.json"
+            print(f"Cleaning {extension} files...")
+            cleanup(filename)
+
         # Run method
         with Pool(28) as p:
             write_logger.info("Starting multiprocessor thread for articles.")
@@ -228,12 +234,6 @@ if __name__=="__main__":
                 with open(filename, "w+") as outfile:
                     write_logger.info("Writing articles '%s' to '%s'...", extension, filename)
                     json.dump(edge_batch, outfile, indent=4, sort_keys=True)
-
-        # # Do cleanup
-        # for extension in items:
-        #     filename = f"{STORAGE_LINK}edges_{extension}.json"
-        #     print(f"Cleaning {extension} files...")
-        #     cleanup(filename)
 
     except KeyboardInterrupt:
         # time.sleep(3)  # give time for threads to write
