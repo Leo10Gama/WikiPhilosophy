@@ -2,12 +2,13 @@
 
 
 from collections import defaultdict, deque
+from random import choice
 import time
-from typing import Dict
+from typing import DefaultDict, Dict, Optional, Set
 from get_to_philosophy import get_edges
 
 
-def get_reverse_edges(edges: Dict[str, str] = None) -> defaultdict(str, set):
+def get_reverse_edges(edges: Optional[Dict[str, str]] = None) -> DefaultDict[str, Set]:
     """Compute the reverse edges of Wikipedia articles.
     
     That is, return a dictionary that links the title of an article to the set
@@ -22,11 +23,12 @@ def get_reverse_edges(edges: Dict[str, str] = None) -> defaultdict(str, set):
     return reverse_edges
 
 
-def compute_distances(edges: Dict[str, str] = None, reverse_edges: defaultdict(str, set) = None) -> defaultdict(str, int):
+def compute_distances(edges: Optional[Dict[str, str]] = None, reverse_edges: Optional[DefaultDict[str, Set]] = None) -> DefaultDict[str, int]:
     """Compute all the distances to Philosophy."""
 
     if not edges: edges = get_edges()
     if not reverse_edges: reverse_edges = get_reverse_edges(edges)  # store all articles that point to that link
+    seen = set()
 
     distances = defaultdict(lambda:-1)  # keep track of distances in dict (-1 = no link, 0 = Philosophy, 1 = links to Philosophy, etc)
     q = deque()  # keep track of which articles to look at next
@@ -39,9 +41,9 @@ def compute_distances(edges: Dict[str, str] = None, reverse_edges: defaultdict(s
         next_articles = []
         for article in articles:
             distances[article] += 1
-            if reverse_edges[article]: 
+            if reverse_edges[article] and article not in seen: 
                 next_articles.extend(reverse_edges[article])
-                reverse_edges[article] = None
+                seen.add(article)
         for a in next_articles:
             distances[a] = distances[article]  # set value to be equal by default (will be incremented on its turn)
         if next_articles: q.append(next_articles)
@@ -58,22 +60,44 @@ def main():
     """Main method for querying path distances."""
 
     QUIT_INPUT = 'q'  # the input to close the terminal
+    BACK_INPUT = 'b'  # the input to move back one from Philosophy
+    FWRD_INPUT = 'f'  # the input to move forward one to Philosophy
 
-    distances = compute_distances()
+    edges = get_edges()
+    reverse_edges = get_reverse_edges(edges)
+    distances = compute_distances(edges, reverse_edges)
 
     while True:
-        user_input = input(f"What would you like to query? ({QUIT_INPUT} to quit): ")
+        user_input = input(f"Enter an article title ({QUIT_INPUT} to quit): ")
+        print()
 
         if user_input.lower() == QUIT_INPUT:
             print("Closing application...")
             return
 
-        print()
-        if user_input in distances:
-            print(f"{user_input} is {distances[user_input]} articles away from Philosophy")
-        else:
-            print(f"{user_input} either does not link to Philosophy, or is not a valid article title.")
-        print()
+        if user_input not in distances:
+            print(f"{user_input} either does not link to Philosophy, or is not a valid article title.\n")
+            continue
+
+        print(f"{user_input} is {distances[user_input]} articles away from Philosophy\n")
+        article = user_input
+
+        while True:
+            user_input = input(f"Enter action for {article}\n({BACK_INPUT}) Move away from Philosophy by one (random) article\n({FWRD_INPUT}) Move towards Philosophy by one article\n(*) Go back\n\n")
+            print()
+            if user_input.lower() == FWRD_INPUT:
+                article = edges[article]
+                print(f"{article} is {distances[article]} articles away from Philosophy\n")
+            elif user_input.lower() == BACK_INPUT:
+                if not reverse_edges[article]:
+                    print(f"No articles could be found that link to {article}.")
+                    continue
+                print(f"{len(reverse_edges[article])} articles link to {article}")
+                article = choice(list(reverse_edges[article]))  # because set doesnt support indexing, which choice uses
+                print(f"{article} is {distances[article]} articles away from Philosophy\n")
+            else:
+                print("Returning to previous menu...\n")
+                break
 
 
 if __name__=='__main__':
