@@ -1,9 +1,16 @@
 # WikiPhilosophy
 There's an old internet adage that, if you click on the first non-parenthesized, non-italicized link on a Wikipedia page, ignoring external links or links that don't lead to existing pages (red links), you'll eventually end up on the Wikipedia page for [Philosophy](https://en.wikipedia.org/wiki/Philosophy). In fact, there's even a [Wikipedia page](https://en.wikipedia.org/wiki/Wikipedia:Getting_to_Philosophy) describing this exact game!
 
-While I know it's not proper "GitHub etiquette" to write a long-winded README, but since this is just a side-project that I don't intend to scale beyond my own entertainment, I'm going to use this file as a way to document my process.
+**I know it's not proper "GitHub etiquette" to write a long-winded README, but since this is just a side-project that I don't intend to scale beyond my own entertainment, I'm going to use this file as a way to document my process.**
 
 Given the nature of the method, I wanted to try my hand at coding a way to automatically compute the path from a given page to "Philosophy", if it exists. However, I wanted to take it one step further and preprocess everything. While Wikipedia is an everchanging database of information, constantly being updated, with new pages being created and deleted, new links being added or removed, I wanted to at least make an effort to capture the results at one given time (which turned out to be between December 9 to December 15). As such, the "cache" folder of this project is representative of Wikipedia articles of that timespan. I would love to have it consistently update with the correct information, but parsing over six million Wikipedia articles on a ThinkPad laptop isn't exactly *efficient*, even using multiprocessing. In fact, it took me about a day to retrieve a list of all the articles, and over a week to get the first link they point to!
+
+### Table of Contents
+* [Methodology](#methodology)
+* [Pitfalls](#pitfalls)
+* [Functionality](#functionality)
+  * [Getting to Philosophy](#getting-to-philosophy)
+  * [Distance to Philosophy](#distance-to-philosophy)
 
 ## Methodology
 The first step of this process was finding a consisent way to get a list of all existing English Wikipedia articles. This was difficult at first, but fortunately there is a Wikipedia page for [all English articles](https://en.wikipedia.org/w/index.php?title=Special:AllPages). Each page contains about 200 or so links, with some being redirects (those in italics). Unfortunately for me, I could not use multiprocessing to scrape these pages, as the links that show on the next page are dependent on the current page (evidenced by the nature of the title, adding the extension `&from="page"`). While the exact amount of pages on Wikipedia differs from day to day, I had scraped it when there were 6,583,099 articles. The actual number for this project is likely smaller, as some articles that had been listed no longer exist, and newer articles were not added.
@@ -27,7 +34,16 @@ In addition, some articles along the critical path to Philosophy (namely, articl
 Below are some of the functions and fun games I've made using this dataset.
 
 ### Getting to Philosophy
-Contained in `get_to_philosophy.py` are the necessary methods to enter in a Wikipedia article's title, and have a path found from that article to reach either Philosophy, or loop around somewhere. Most articles will eventually reach Philosophy, though there are some that will end up looping back in on themselves (interestingly, [Mathematics](https://en.wikipedia.org/wiki/Mathematics) (as of 12/15/22) loops in on itself, with its path going to [Number theory](https://en.wikipedia.org/wiki/Number_theory), [Pure mathematics](https://en.wikipedia.org/wiki/Pure_mathematics), and then back to Mathematics!). Thanks to all articles being stored in a dictionary, paths can be generated incredibly quickly, which means not waiting for dozens of requests to get back to get an answer.
+Contained in `get_to_philosophy.py` are the necessary methods to enter in a Wikipedia article's title, and have a path found from that article to reach either Philosophy, or loop around somewhere. Most articles will eventually reach Philosophy, though there are some that will end up looping back in on themselves (interestingly, [Mathematics](https://en.wikipedia.org/wiki/Mathematics) (as of 12/15/22) loops in on itself, with its path going to [Number theory](https://en.wikipedia.org/wiki/Number_theory), [Pure mathematics](https://en.wikipedia.org/wiki/Pure_mathematics), and then back to Mathematics!). Thanks to all articles being stored in a dictionary, paths can be generated incredibly quickly, which means not waiting for dozens of requests to get back to get an answer. 
+
+Below are some example paths generated to either get to Philosophy, or loop.
+![Path from Leonardo da Vinci to Philosophy](https://user-images.githubusercontent.com/51037424/208314289-510f469f-4795-41ce-a19d-80ca7614882f.png)
+
+![Random path from Nordic combined at the 2018 Winter Olympics - Individual large hill/10km to Philosophy](https://user-images.githubusercontent.com/51037424/208314539-6f6f98b9-e09e-44c1-95eb-9685a6d7fd8a.png)
+
+![Path from Python to Philosophy](https://user-images.githubusercontent.com/51037424/208314479-d1b290bd-f42d-4743-a26c-1ee053a6e25e.png)
+
+![Path from Python (programming language), looping at Mathematics](https://user-images.githubusercontent.com/51037424/208314415-10ae62bd-6bc2-4ae1-bd74-9fe523dd0639.png)
 
 ### Distance to Philosophy
 In the `distance_to_philosophy.py` there are the necessary methods to compute the distances from an arbitrary article to Philosophy. This took a few iterations to get correct.
@@ -38,6 +54,14 @@ Eventually I realized that the bottleneck of this method was the fact that acces
 
 This method was looking promising initially, when it generated the first dozen or so batches in a few seconds, but when it reached "Batch 219", I started to get suspicious. As it turns out, I wasn't accounting for duplicate iterations, or loops of articles. Thus, eventually articles would loop back in on themselves, and it would continue counting forever. The simple fix to this was to remove the dictionary entry once I finished reading it, to ensure it's not read multiple times over. Once this was finished, the dictionary keeping track of distances would only be populated with those articles that linked to Philosophy, and as such, I could compare the size of this dictionary with the size of the original to see how many articles link to Philosophy. At the time of initially running this code, about 92.55% of articles linked to Philosophy, which is lower than what is stated on Wikipedia for 2011 (94.52%) and 2016 (97%). While I'm not certain what this could mean, I want to attribute this to the fact that some articles were parsed incorrectly, and while this percentage would likely be larger if I reparsed everything again with this fixed function, it would also take a very long time. As such, I'm content with cleaning out these outliers on a case-by-case basis as I test through random articles.
 
+![Generating batches](https://user-images.githubusercontent.com/51037424/208314670-7e3b8e52-1707-4412-885b-12e50422b22b.png)
+
+![Leonardo da Vinci distance](https://user-images.githubusercontent.com/51037424/208314717-719a8aba-7aa1-4092-8684-c3040b5cadcf.png)
+
 Later, I wanted to implement functionality that would allow the user to move up and down a given article's path, in a way traversing the tree in a given direction to see how deep the branch goes. Upon initial implementation, I was able to move forwards through the tree (towards Philosophy) just fine, but the reverse operation was giving me a "None" output. After doing some investigation, I realized this was because, to calculate the distances, I was removing the item from the initial dictionary, which meant any time I called `compute_distances(reverse_edges="Something")`, the reversed edges would get completely wiped. The simple solution (and, admittedly, first solution I should've thought of) was to just keep a set of all seen elements. Since checking whether an element is in a set is Θ(1), it shouldn't affect runtime any more than removing an element from a dictionary.
 
+![Traversing forward and backward from Amazon Web Services](https://user-images.githubusercontent.com/51037424/208315025-88a455ef-7040-4cf5-be63-cdc45d9514d3.png)
+
 An interesting side-issue that I came across with this second, traversal functionality, is that if you continue approaching Philosophy, the program will not say that "Philosophy is 0 articles away from Philosophy", but instead turns into 15 (at the time of writing). This is because Philosophy has a loop with itself, where it links to [Existence](https://en.wikipedia.org/wiki/Existence), [Reality](https://en.wikipedia.org/wiki/Reality), and so on, until wrapping back around at Philosophy!
+
+![Philosophy is 15 articles away from Philosophy](https://user-images.githubusercontent.com/51037424/208314948-cde53193-6065-4793-b548-127e823c9ca4.png)
