@@ -210,7 +210,7 @@ def cleanup(filename: str):
     edges = {}  # make file
     with open(filename, "r") as infile:
         edges = json.load(infile)  # read in json
-    edges = {k: v for k, v in edges.items() if " language" not in v}  # remove items with name
+    edges = {k: v for k, v in edges.items() if "in Chile" not in v}  # remove items with name
     with open(filename, "w+") as outfile:
         json.dump(edges, outfile, indent=4, sort_keys=True)  # rewrite json
 

@@ -62,22 +62,37 @@ def main():
     QUIT_INPUT = 'q'  # the input to close the terminal
     BACK_INPUT = 'b'  # the input to move back one from Philosophy
     FWRD_INPUT = 'f'  # the input to move forward one to Philosophy
+    DIST_INPUT = '#'  # the input to get an article by its distance to Philosophy
 
     edges = get_edges()
     reverse_edges = get_reverse_edges(edges)
     distances = compute_distances(edges, reverse_edges)
 
     while True:
-        user_input = input(f"Enter an article title ({QUIT_INPUT} to quit): ")
+        user_input = input(f"Enter an article title ({DIST_INPUT}[num] to get random article by distance, {QUIT_INPUT} to quit)\n")
         print()
+
+        if not user_input:
+            print("Nothing entered")
+            continue
 
         if user_input.lower() == QUIT_INPUT:
             print("Closing application...")
             return
 
-        if user_input not in distances:
+        if user_input.lower()[0] == DIST_INPUT:
+            if not user_input[1:].isnumeric():
+                print(f"Error: {user_input[1:]} is not numeric. Please enter a number for length!\n")
+                continue
+            if int(user_input[1:]) not in distances.values():
+                print(f"No articles have length {user_input[1:]} from Philosophy.")
+                continue
+            print(f"Retrieving random article of length {user_input[1:]}...", end="", flush=True)
+            user_input = choice([a for a, dist in distances.items() if dist == int(user_input[1:])])
+            print("Done")
+        elif user_input not in distances:
             print(f"{user_input} either does not link to Philosophy, or is not a valid article title.\n")
-            continue
+            continue        
 
         print(f"{user_input} is {distances[user_input]} articles away from Philosophy\n")
         article = user_input
