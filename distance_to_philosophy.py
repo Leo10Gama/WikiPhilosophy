@@ -6,6 +6,7 @@ from random import choice
 import time
 from typing import DefaultDict, Dict, Optional, Set
 from get_to_philosophy import get_edges
+from menu import view_results
 
 
 def get_reverse_edges(edges: Optional[Dict[str, str]] = None) -> DefaultDict[str, Set]:
@@ -60,7 +61,8 @@ def main():
     """Main method for querying path distances."""
 
     QUIT_INPUT = 'q'  # the input to close the terminal
-    BACK_INPUT = 'b'  # the input to move back one from Philosophy
+    BACK_INPUT = 'b'  # the input to move back one random article from Philosophy
+    PICK_BACK_INPUT = 'p'  # the input to move back to a specified article from the given one
     FWRD_INPUT = 'f'  # the input to move forward one to Philosophy
     DIST_INPUT = '#'  # the input to get an article by its distance to Philosophy
 
@@ -98,17 +100,24 @@ def main():
         article = user_input
 
         while True:
-            user_input = input(f"Enter action for {article}\n({BACK_INPUT}) Move away from Philosophy by one (random) article\n({FWRD_INPUT}) Move towards Philosophy by one article\n(*) Go back\n\n")
+            user_input = input(
+                f"Enter action for {article}\n"
+                f"({BACK_INPUT}) Move away from Philosophy by one (random) article\n"
+                f"({PICK_BACK_INPUT}) Move away from Philosophy by one (chosen) article\n"
+                f"({FWRD_INPUT}) Move towards Philosophy by one article\n"
+                f"(*) Go back\n\n"
+            )
             print()
             if user_input.lower() == FWRD_INPUT:
                 article = edges[article]
                 print(f"{article} is {distances[article]} articles away from Philosophy\n")
-            elif user_input.lower() == BACK_INPUT:
+            elif user_input.lower() == BACK_INPUT or user_input.lower() == PICK_BACK_INPUT:
                 if not reverse_edges[article]:
                     print(f"No articles could be found that link to {article}.")
                     continue
-                print(f"{len(reverse_edges[article])} articles link to {article}")
-                article = choice(list(reverse_edges[article]))  # because set doesnt support indexing, which choice uses
+                print(f"{len(reverse_edges[article])} articles link to {article}\n")
+                options = list(reverse_edges[article]) if user_input.lower() == BACK_INPUT else [view_results(list(reverse_edges[article]), can_select=True)]
+                article = choice(options)
                 print(f"{article} is {distances[article]} articles away from Philosophy\n")
             else:
                 print("Returning to previous menu...\n")
