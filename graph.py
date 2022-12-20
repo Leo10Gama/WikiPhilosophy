@@ -114,7 +114,7 @@ def parse_page(page: Page) -> Tuple[Page, Edge]:
     for table in article.select("table"):  # we don't need tables; also prevents accidentally grabbing sidebar
         table.extract()
 
-    p, e = parse_chunk(article.find_all(['p', 'ul']))   # check all paragraphs (case for like 99% of articles) and list items
+    p, e = parse_chunk(article.find_all(['p', 'ul', 'ol']))   # check all paragraphs (case for like 99% of articles) and list items
     if p and e: return p, e
 
     no_link_logger.warning("Found article without any links: %s", page.title)
@@ -210,7 +210,8 @@ def cleanup(filename: str):
     edges = {}  # make file
     with open(filename, "r") as infile:
         edges = json.load(infile)  # read in json
-    edges = {k: v for k, v in edges.items() if "in Chile" not in v}  # remove items with name
+    remove_if_in = lambda x: "Awards" in x
+    edges = {k: v for k, v in edges.items() if not remove_if_in(v)}  # remove items with name
     with open(filename, "w+") as outfile:
         json.dump(edges, outfile, indent=4, sort_keys=True)  # rewrite json
 

@@ -64,14 +64,16 @@ def main():
     BACK_INPUT = 'b'  # the input to move back one random article from Philosophy
     PICK_BACK_INPUT = 'p'  # the input to move back to a specified article from the given one
     FWRD_INPUT = 'f'  # the input to move forward one to Philosophy
-    DIST_INPUT = '#'  # the input to get an article by its distance to Philosophy
+    DIST_INPUT = '#'  # the input to get a random article by its distance to Philosophy
+    PICK_DIST_INPUT = '$'  # the input to get a chosen article by its distance to Philosophy
 
     edges = get_edges()
     reverse_edges = get_reverse_edges(edges)
     distances = compute_distances(edges, reverse_edges)
+    print()
 
     while True:
-        user_input = input(f"Enter an article title ({DIST_INPUT}[num] to get random article by distance, {QUIT_INPUT} to quit)\n")
+        user_input = input(f"Enter an article title ({DIST_INPUT}[num]/{PICK_DIST_INPUT}[num] to get random/choose article by distance, {QUIT_INPUT} to quit)\n")
         print()
 
         if not user_input:
@@ -82,16 +84,21 @@ def main():
             print("Closing application...")
             return
 
-        if user_input.lower()[0] == DIST_INPUT:
+        if user_input.lower()[0] == DIST_INPUT or user_input.lower()[0] == PICK_DIST_INPUT:
             if not user_input[1:].isnumeric():
                 print(f"Error: {user_input[1:]} is not numeric. Please enter a number for length!\n")
                 continue
             if int(user_input[1:]) not in distances.values():
                 print(f"No articles have length {user_input[1:]} from Philosophy.")
                 continue
-            print(f"Retrieving random article of length {user_input[1:]}...", end="", flush=True)
-            user_input = choice([a for a, dist in distances.items() if dist == int(user_input[1:])])
+            print(f"Retrieving articles of length {user_input[1:]}...", end="", flush=True)
+            options = [a for a, dist in distances.items() if dist == int(user_input[1:])]
             print("Done")
+            if user_input.lower()[0] == PICK_DIST_INPUT: options.sort()
+            user_input = choice(options) if user_input.lower()[0] == DIST_INPUT else view_results(options, can_select=True, results_per_page=15)
+            if not user_input:
+                print(f"No article selected.")
+                continue
         elif user_input not in distances:
             print(f"{user_input} either does not link to Philosophy, or is not a valid article title.\n")
             continue        
@@ -116,8 +123,12 @@ def main():
                     print(f"No articles could be found that link to {article}.")
                     continue
                 print(f"{len(reverse_edges[article])} articles link to {article}\n")
-                options = list(reverse_edges[article]) if user_input.lower() == BACK_INPUT else [view_results(list(reverse_edges[article]), can_select=True)]
-                article = choice(options)
+                options = list(reverse_edges[article])
+                if user_input.lower()[0] == PICK_BACK_INPUT: options.sort()
+                article = choice(options) if user_input.lower() == BACK_INPUT else view_results(options, can_select=True, results_per_page=15)
+                if not article:
+                    print(f"No article selected.")
+                    continue
                 print(f"{article} is {distances[article]} articles away from Philosophy\n")
             else:
                 print("Returning to previous menu...\n")
