@@ -77,3 +77,9 @@ Through this new system, I was able to see that (as of 12/19/22) the longest pat
 ![Parmouti 12 is 241 articles away from Philosophy](https://user-images.githubusercontent.com/51037424/208527031-8ace2b55-70eb-47e2-9338-c0c33487dd06.png)
 
 ![Eochaid Gonnat is 46 articles away from Philosophy](https://user-images.githubusercontent.com/51037424/208527133-8b537a8e-1e41-419f-abcd-b8f6a4b1fc75.png)
+
+Next, I wanted a quick and easy way to actually select the articles instead of them being random. Since I already had an option-selecting function in my [RyuNumber](https://github.com/Leo10Gama/RyuNumber) project, I decided to reuse some of the code here to simplify the process. As such I can now list and select articles that link to a current article (if they exist), as well as list off all articles at a given distance from Philosophy!
+
+**TODO: Image of menu**
+
+As a last cleanup, I went through every article that previously did not connect to Philosophy, with the hopes of getting a different outcome for most of them to clean up any incorrect paths that were the result of poor initial coding. After this new batch of cleaning up, the number of articles that linked to Philosophy increased to **94.50%**, indicating that my initial guess that the previous, lower percentage was due to articles being initially parsed incorrectly. I can also place a half-decent guess that the reason this percentage is lower than the previous recorded peak in 2017 is likely due to the loop at Mathematics, as many articles related to topics both in that field, as well as programming, end up linking there. It's possible that in previous years, this loop didn't exist, and thus more articles were able to reach Philosophy through Mathematics.

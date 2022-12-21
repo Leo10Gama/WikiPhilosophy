@@ -204,14 +204,20 @@ def parse_articles(articles_path: str, file_extension: str = "", cont: bool = Fa
         return edges, file_extension
 
 
-def cleanup(filename: str):
+def cleanup(filename: str, disconnected_articles=None):
     """Cleanup method to remove articles that don't point to anything."""
 
     edges = {}  # make file
     with open(filename, "r") as infile:
         edges = json.load(infile)  # read in json
+
     remove_if_in = lambda x: "Awards" in x
     edges = {k: v for k, v in edges.items() if not remove_if_in(v)}  # remove items with name
+
+    # for article in disconnected_articles:
+    #     if article in edges:
+    #         del edges[article]
+
     with open(filename, "w+") as outfile:
         json.dump(edges, outfile, indent=4, sort_keys=True)  # rewrite json
 
@@ -222,6 +228,8 @@ if __name__=="__main__":
 
     try:
         # Do cleanup
+        # disconnected_articles = distance_to_philosophy.get_unconnected_articles()
+
         for extension in items:
             filename = f"{STORAGE_LINK}edges_{extension}.json"
             print(f"Cleaning {extension} files...")

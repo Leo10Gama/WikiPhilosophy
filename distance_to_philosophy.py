@@ -5,7 +5,7 @@ from collections import defaultdict, deque
 from random import choice
 import time
 from typing import DefaultDict, Dict, Optional, Set
-from get_to_philosophy import get_edges
+from get_to_philosophy import get_articles, get_edges
 from menu import view_results
 
 
@@ -55,6 +55,14 @@ def compute_distances(edges: Optional[Dict[str, str]] = None, reverse_edges: Opt
     
     print(f"Parsed {len(distances)} articles out of {len(edges)} total ({len(distances) / len(edges) * 100:.4f}% of articles link to Philosophy).")
     return distances
+
+
+def get_unconnected_articles():
+    """Retrieve a list of all articles not connected to Philosophy."""
+
+    articles = get_articles()
+    distances = compute_distances()
+    return [article.title for article in articles if distances[article.title] == -1]
 
 
 def main():
