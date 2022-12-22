@@ -21,6 +21,8 @@ After each article was parsed, I had to create an "edge" to connect it to the fi
 
 Since this had to be done over a long stretch of time, and I still have final assignments to complete for school, I needed to ensure there was a consistent way to stop and start this process. Initially, I tried placing the whole function in a try-except to catch the keyboard interrupt, but occassionally it would stop execution while one thread was mid-write. Eventually, the most consistent (and quickest) fix I could find was to turn off my computer's Internet connection, creating an HTTP connection error, which would cause each thread to write to file, and *then* use an interrupt. In addition, I kept a separate folder on-hand of each file's progress, that I would update before ending execution to make sure files didn't get overwritten with nothing (which did happen for the first few iterations).
 
+After about a week of initial testing (currently 12/21/22), I decided to make one more pull to try getting any new articles that may have been created, as well as renaming any articles that could have been renamed. Pulling every article a second time took an afternoon, but updating everything took a surprising 20 minutes to complete, which I believe goes to show the remarkable effort put forth by Wikipedians to keep information on the site updated, accurate, and relevant.
+
 ## Pitfalls
 There were various issues that I encountered trying to get the parser to work, as it's impossible to account for absolutely every edge case in a project like this.
 

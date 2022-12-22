@@ -173,6 +173,9 @@ def parse_articles(articles_path: str, file_extension: str = "", cont: bool = Fa
                     seen_edges = dict(json.load(edge_list).items())
                     counter = len(seen_edges.keys())
                     for seen_edge in seen_edges.keys():
+                        if seen_edge not in articles.keys():
+                            counter -= 1
+                            continue
                         del articles[seen_edge]
                         edges[seen_edge] = seen_edges[seen_edge]
                 except Exception:
@@ -230,10 +233,10 @@ if __name__=="__main__":
         # Do cleanup
         # disconnected_articles = distance_to_philosophy.get_unconnected_articles()
 
-        for extension in items:
-            filename = f"{STORAGE_LINK}edges_{extension}.json"
-            print(f"Cleaning {extension} files...")
-            cleanup(filename)
+        # for extension in items:
+        #     filename = f"{STORAGE_LINK}edges_{extension}.json"
+        #     print(f"Cleaning {extension} files...")
+        #     cleanup(filename)
 
         # Run method
         with Pool(28) as p:
