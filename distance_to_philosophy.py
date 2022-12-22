@@ -5,6 +5,7 @@ from collections import defaultdict, deque
 from random import choice
 import time
 from typing import DefaultDict, Dict, Optional, Set
+
 from get_to_philosophy import get_articles, get_edges
 from menu import view_results
 
