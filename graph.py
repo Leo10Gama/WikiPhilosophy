@@ -91,6 +91,7 @@ def parse_page(page: Page) -> Tuple[Page, Edge]:
                 if (
                     a_tag['href'].startswith("/wiki/Help:") 
                     or a_tag['href'].startswith("/wiki/Wikipedia:")
+                    or a_tag['href'].startswith("/wiki/Talk:")
                     or a_tag['href'].startswith("https://")
                 ): continue   # links to not-an-article
                 if a_tag.has_attr("class"):
@@ -214,7 +215,7 @@ def cleanup(filename: str, disconnected_articles=None):
     with open(filename, "r") as infile:
         edges = json.load(infile)  # read in json
 
-    remove_if_in = lambda x: "Awards" in x
+    remove_if_in = lambda x: "Talk:" in x
     edges = {k: v for k, v in edges.items() if not remove_if_in(v)}  # remove items with name
 
     # for article in disconnected_articles:
@@ -233,10 +234,10 @@ if __name__=="__main__":
         # Do cleanup
         # disconnected_articles = distance_to_philosophy.get_unconnected_articles()
 
-        # for extension in items:
-        #     filename = f"{STORAGE_LINK}edges_{extension}.json"
-        #     print(f"Cleaning {extension} files...")
-        #     cleanup(filename)
+        for extension in items:
+            filename = f"{STORAGE_LINK}edges_{extension}.json"
+            print(f"Cleaning {extension} files...")
+            cleanup(filename)
 
         # Run method
         with Pool(28) as p:
