@@ -11,6 +11,7 @@ Given the nature of the method, I wanted to try my hand at coding a way to autom
 * [Functionality](#functionality)
   * [Getting to Philosophy](#getting-to-philosophy)
   * [Distance to Philosophy](#distance-to-philosophy)
+  * [Race to Philosophy](#race-to-philosophy)
 
 ## Methodology
 The first step of this process was finding a consisent way to get a list of all existing English Wikipedia articles. This was difficult at first, but fortunately there is a Wikipedia page for [all English articles](https://en.wikipedia.org/w/index.php?title=Special:AllPages). Each page contains about 200 or so links, with some being redirects (those in italics). Unfortunately for me, I could not use multiprocessing to scrape these pages, as the links that show on the next page are dependent on the current page (evidenced by the nature of the title, adding the extension `&from="page"`). While the exact amount of pages on Wikipedia differs from day to day, I had scraped it when there were 6,583,099 articles. The actual number for this project is likely smaller, as some articles that had been listed no longer exist, and newer articles were not added.
@@ -99,6 +100,8 @@ The setup for this method was fairly simple, since it mostly just involved getti
 
 With the base implementation complete, I also wanted to add the flexibility to have as many racers as the user wanted, which was surprisingly easy to do thanks to early design decisions in my implementation.
 
-**TODO: pic of race with multiple people**
+![Four-article race](https://user-images.githubusercontent.com/51037424/209400919-5454b6e5-0f91-42d6-a711-4937ea688a6a.png)
+
+![Seven-article race](https://user-images.githubusercontent.com/51037424/209400907-1d24aec9-50a7-48b0-8ea9-b31892d30fdf.png)
 
 Interestingly, in the above image, all paths eventually converged at [Science](https://en.wikipedia.org/wiki/Science), which meant that one could see the result of the race as soon as all of the racing articles reached it. In addition, the more racers there are, the quicker one seems to reach a winner, which I suppose makes sense given that more articles leads to a higher chance that one article is naturally closer to Philosophy than the others.
