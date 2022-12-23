@@ -93,4 +93,6 @@ Enclosed in the `race_to_philosophy.py` file are methods for the primary reason 
 
 The setup for this method was fairly simple, since it mostly just involved getting a random article and marching along the pre-computed edges of that article until either Philosophy is reached, or all articles in the race loop. With the straightforward implementation completed, all that was left to do was run a few races and try looking for patterns in the winners.
 
-**TODO: pics of race**
+![Race between Beat Rhythm News and Personal finance](https://user-images.githubusercontent.com/51037424/209398889-3a360c18-693d-4867-b1b2-ffbc6d8582f2.png)
+
+![Tie between Jesús Conde and Māori loan affair](https://user-images.githubusercontent.com/51037424/209398744-396ca6a1-08a1-485d-8bda-40b110456d84.png)
