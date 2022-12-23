@@ -93,7 +93,14 @@ def start_race():
     print()
 
     while True:
-        racers: List[str] = sample(edges.keys(), 2)
+        num_racers = input("How many articles would you like to race? ")
+        if num_racers.isnumeric() and int(num_racers) > 0:
+            num_racers = int(num_racers)
+        else:
+            print("Invalid number of racers. Using 2 for now...")
+            num_racers = 2
+
+        racers: List[str] = sample(edges.keys(), num_racers)
 
         # Print the options
         for i in range(len(racers)):

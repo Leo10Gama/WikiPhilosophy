@@ -215,7 +215,7 @@ def cleanup(filename: str, disconnected_articles=None):
     with open(filename, "r") as infile:
         edges = json.load(infile)  # read in json
 
-    remove_if_in = lambda x: "Talk:" in x
+    remove_if_in = lambda x: "Paleolithic" in x
     edges = {k: v for k, v in edges.items() if not remove_if_in(v)}  # remove items with name
 
     # for article in disconnected_articles:

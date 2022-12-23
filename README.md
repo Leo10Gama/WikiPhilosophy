@@ -96,3 +96,9 @@ The setup for this method was fairly simple, since it mostly just involved getti
 ![Race between Beat Rhythm News and Personal finance](https://user-images.githubusercontent.com/51037424/209398889-3a360c18-693d-4867-b1b2-ffbc6d8582f2.png)
 
 ![Tie between Jesús Conde and Māori loan affair](https://user-images.githubusercontent.com/51037424/209398744-396ca6a1-08a1-485d-8bda-40b110456d84.png)
+
+With the base implementation complete, I also wanted to add the flexibility to have as many racers as the user wanted, which was surprisingly easy to do thanks to early design decisions in my implementation.
+
+**TODO: pic of race with multiple people**
+
+Interestingly, in the above image, all paths eventually converged at [Science](https://en.wikipedia.org/wiki/Science), which meant that one could see the result of the race as soon as all of the racing articles reached it. In addition, the more racers there are, the quicker one seems to reach a winner, which I suppose makes sense given that more articles leads to a higher chance that one article is naturally closer to Philosophy than the others.
