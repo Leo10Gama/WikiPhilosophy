@@ -7,7 +7,8 @@ import time
 from typing import Dict, List, Optional
 
 from get_to_philosophy import get_edges
-from vital_articles import get_vital_articles_at_level
+from menu import view_results
+from vital_articles import CATEGORIES, get_vital_articles_at_level, get_vital_articles_by_category
 
 
 def race(articles: List[str], edges: Dict[str, str] = None) -> Optional[List[str]]:
@@ -56,7 +57,7 @@ def race(articles: List[str], edges: Dict[str, str] = None) -> Optional[List[str
     print(f"\n{divider}")
     time.sleep(SECONDS_BETWEEN_ITERATIONS)
     # RACE! Continue until either we reach Philosophy or all articles have looped
-    while "Philosophy" not in racers or all(has_looped):
+    while "Philosophy" not in racers and not all(has_looped):
         # Move forward one article each
         for i, racer in enumerate(racers):
             if racer == "(no articles linked)": continue
@@ -65,7 +66,7 @@ def race(articles: List[str], edges: Dict[str, str] = None) -> Optional[List[str
             else:
                 racers[i] = edges[racer]
             path[i].append(racer)
-            has_looped[i] = path[i].count(racer) > 1
+            has_looped[i] = len(path[i]) != len(set(path[i]))  # casting to set removes duplicates
         # Print the current positions
         print("|", end="")
         for racer_name in racers:
@@ -110,6 +111,7 @@ def start_race():
             f"(3) Vital articles Level 3 and lower\n"
             f"(4) Vital articles Level 4 and lower\n"
             f"(5) All vital articles\n"
+            f"(c) Choose level 5 vital article categories\n"
             f"(*) All articles\n"
         ).lower()
         if category_selection.isnumeric():
@@ -122,6 +124,14 @@ def start_race():
                 categories.extend(get_vital_articles_at_level(4))
             if int(category_selection) >= 5:
                 categories.extend(get_vital_articles_at_level(5))
+        elif category_selection == 'c':
+            option = "a"
+            my_options = [category for category in CATEGORIES]
+            while True:
+                option = view_results(my_options, can_select=True, results_per_page=20)
+                if not option: break  # no further selection
+                categories.extend(get_vital_articles_by_category(option))
+                my_options.remove(option)
         else:
             print("Loading all articles...")
             categories.extend(edges.keys())

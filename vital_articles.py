@@ -9,6 +9,20 @@ from typing import Dict, List, Optional
 
 STORAGE_LINK = "cache/vital_articles"
 
+CATEGORIES = [
+    "People",
+    "History",
+    "Geography",
+    "Arts",
+    "Philosophy and religion",
+    "Everyday life",
+    "Society and social sciences",
+    "Biological and health sciences",
+    "Physical sciences",
+    "Technology",
+    "Mathematics"
+]
+
 LEVEL_1_VITAL_ARTICLE_URLS = [f"{STORAGE_LINK}/lvl1_vital_articles.json"]
 LEVEL_2_VITAL_ARTICLE_URLS = [f"{STORAGE_LINK}/lvl2_vital_articles.json"]
 LEVEL_3_VITAL_ARTICLE_URLS = [f"{STORAGE_LINK}/lvl3_vital_articles.json"]
@@ -255,6 +269,20 @@ def get_vital_articles_at_level(level: int) -> Optional[List[str]]:
             article_names.extend(json.load(infile).keys())
     
     return article_names
+
+
+def get_vital_articles_by_category(category: str) -> Optional[List[str]]:
+    """Given the name of a vital article category, return all level <=5 article titles."""
+
+    if category not in CATEGORIES: return None
+
+    urls = [url for url in LEVEL_5_VITAL_ARTICLE_URLS if category.lower().replace(' ', '_') in url]
+    article_titles = []
+    for url in urls:
+        with open(url, "r") as infile:
+            article_titles.extend(json.load(infile).keys())
+
+    return article_titles
 
 
 if __name__=='__main__':
