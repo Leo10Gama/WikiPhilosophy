@@ -1,11 +1,13 @@
 """Module for articles racing to see which gets to Philosophy first."""
 
 
+import json
 from random import sample
 import time
 from typing import Dict, List, Optional
 
 from get_to_philosophy import get_edges
+from vital_articles import get_vital_articles_at_level
 
 
 def race(articles: List[str], edges: Dict[str, str] = None) -> Optional[List[str]]:
@@ -93,6 +95,7 @@ def start_race():
     print()
 
     while True:
+        # Set number of racers
         num_racers = input("How many articles would you like to race? ")
         if num_racers.isnumeric() and int(num_racers) > 0:
             num_racers = int(num_racers)
@@ -100,7 +103,31 @@ def start_race():
             print("Invalid number of racers. Using 2 for now...")
             num_racers = 2
 
-        racers: List[str] = sample(edges.keys(), num_racers)
+        # Pick categories
+        categories = []
+        category_selection = input(
+            f"Which categories would you like?\n"
+            f"(3) Vital articles Level 3 and lower\n"
+            f"(4) Vital articles Level 4 and lower\n"
+            f"(5) All vital articles\n"
+            f"(*) All articles\n"
+        ).lower()
+        if category_selection.isnumeric():
+            print("Loading vital articles...")
+            if int(category_selection) >= 3:
+                categories.extend(get_vital_articles_at_level(1))
+                categories.extend(get_vital_articles_at_level(2))
+                categories.extend(get_vital_articles_at_level(3))
+            if int(category_selection) >= 4:
+                categories.extend(get_vital_articles_at_level(4))
+            if int(category_selection) >= 5:
+                categories.extend(get_vital_articles_at_level(5))
+        else:
+            print("Loading all articles...")
+            categories.extend(edges.keys())
+        print()
+
+        racers: List[str] = sample(categories, num_racers)
 
         # Print the options
         for i in range(len(racers)):

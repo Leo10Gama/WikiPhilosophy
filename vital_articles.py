@@ -4,10 +4,61 @@
 from bs4 import BeautifulSoup
 import json
 import requests
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 
 STORAGE_LINK = "cache/vital_articles"
+
+LEVEL_1_VITAL_ARTICLE_URLS = [f"{STORAGE_LINK}/lvl1_vital_articles.json"]
+LEVEL_2_VITAL_ARTICLE_URLS = [f"{STORAGE_LINK}/lvl2_vital_articles.json"]
+LEVEL_3_VITAL_ARTICLE_URLS = [f"{STORAGE_LINK}/lvl3_vital_articles.json"]
+LEVEL_4_VITAL_ARTICLE_URLS = [
+    f"{STORAGE_LINK}/lvl4_vital_articles/people.json",
+    f"{STORAGE_LINK}/lvl4_vital_articles/history.json",
+    f"{STORAGE_LINK}/lvl4_vital_articles/geography.json",
+    f"{STORAGE_LINK}/lvl4_vital_articles/arts.json",
+    f"{STORAGE_LINK}/lvl4_vital_articles/philosophy_and_religion.json",
+    f"{STORAGE_LINK}/lvl4_vital_articles/everyday_life.json",
+    f"{STORAGE_LINK}/lvl4_vital_articles/society_and_social_sciences.json",
+    f"{STORAGE_LINK}/lvl4_vital_articles/biological_and_health_sciences.json",
+    f"{STORAGE_LINK}/lvl4_vital_articles/physical_sciences.json",
+    f"{STORAGE_LINK}/lvl4_vital_articles/technology.json",
+    f"{STORAGE_LINK}/lvl4_vital_articles/mathematics.json"
+]
+LEVEL_5_VITAL_ARTICLE_URLS = [
+    f"{STORAGE_LINK}/lvl5_vital_articles/people/writers_and_journalists.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/people/artists_musicians_and_composers.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/people/entertainers_directors_producers_and_screenwriters.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/people/philosophers_historians_and_social_scientists.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/people/religious_figures.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/people/politicians_and_leaders.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/people/military_personnel_revolutionaries_and_activists.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/people/scientists_inventors_and_mathematicians.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/people/sports_figures.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/people/miscellaneous.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/history/history.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/geography/physical_geography.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/geography/countries_and_subdivisions.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/geography/cities.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/arts/arts.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/philosophy_and_religion/philosophy_and_religion.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/everyday_life/everyday_life.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/everyday_life/sports_games_and_recreation.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/society_and_social_sciences/social_studies.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/society_and_social_sciences/politics_and_economics.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/society_and_social_sciences/culture.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/biological_and_health_sciences/biology_biochemistry_anatomy_and_physiology.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/biological_and_health_sciences/animals.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/biological_and_health_sciences/plants_fungi_and_other_organisms.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/biological_and_health_sciences/health_medicine_and_disease.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/physical_sciences/basics_and_measurement.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/physical_sciences/astronomy.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/physical_sciences/chemistry.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/physical_sciences/earth_science.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/physical_sciences/physics.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/technology/technology.json",
+    f"{STORAGE_LINK}/lvl5_vital_articles/mathematics/mathematics.json",
+]
 
 
 def parse_upper_level_list(url: str, default_level: int) -> Dict[str, int]:
@@ -160,54 +211,11 @@ def combine_all_articles():
 
     FILENAME = f"{STORAGE_LINK}/vital_articles.json"
 
-    filenames = [
-        "lvl1_vital_articles.json",
-        "lvl2_vital_articles.json",
-        "lvl3_vital_articles.json",
-        "lvl4_vital_articles/people.json",
-        "lvl4_vital_articles/history.json",
-        "lvl4_vital_articles/geography.json",
-        "lvl4_vital_articles/arts.json",
-        "lvl4_vital_articles/philosophy_and_religion.json",
-        "lvl4_vital_articles/everyday_life.json",
-        "lvl4_vital_articles/society_and_social_sciences.json",
-        "lvl4_vital_articles/biological_and_health_sciences.json",
-        "lvl4_vital_articles/physical_sciences.json",
-        "lvl4_vital_articles/technology.json",
-        "lvl4_vital_articles/mathematics.json",
-        "lvl5_vital_articles/people/writers_and_journalists.json",
-        "lvl5_vital_articles/people/artists_musicians_and_composers.json",
-        "lvl5_vital_articles/people/entertainers_directors_producers_and_screenwriters.json",
-        "lvl5_vital_articles/people/philosophers_historians_and_social_scientists.json",
-        "lvl5_vital_articles/people/religious_figures.json",
-        "lvl5_vital_articles/people/politicians_and_leaders.json",
-        "lvl5_vital_articles/people/military_personnel_revolutionaries_and_activists.json",
-        "lvl5_vital_articles/people/scientists_inventors_and_mathematicians.json",
-        "lvl5_vital_articles/people/sports_figures.json",
-        "lvl5_vital_articles/people/miscellaneous.json",
-        "lvl5_vital_articles/history/history.json",
-        "lvl5_vital_articles/geography/physical_geography.json",
-        "lvl5_vital_articles/geography/countries_and_subdivisions.json",
-        "lvl5_vital_articles/geography/cities.json",
-        "lvl5_vital_articles/arts/arts.json",
-        "lvl5_vital_articles/philosophy_and_religion/philosophy_and_religion.json",
-        "lvl5_vital_articles/everyday_life/everyday_life.json",
-        "lvl5_vital_articles/everyday_life/sports_games_and_recreation.json",
-        "lvl5_vital_articles/society_and_social_sciences/social_studies.json",
-        "lvl5_vital_articles/society_and_social_sciences/politics_and_economics.json",
-        "lvl5_vital_articles/society_and_social_sciences/culture.json",
-        "lvl5_vital_articles/biological_and_health_sciences/biology_biochemistry_anatomy_and_physiology.json",
-        "lvl5_vital_articles/biological_and_health_sciences/animals.json",
-        "lvl5_vital_articles/biological_and_health_sciences/plants_fungi_and_other_organisms.json",
-        "lvl5_vital_articles/biological_and_health_sciences/health_medicine_and_disease.json",
-        "lvl5_vital_articles/physical_sciences/basics_and_measurement.json",
-        "lvl5_vital_articles/physical_sciences/astronomy.json",
-        "lvl5_vital_articles/physical_sciences/chemistry.json",
-        "lvl5_vital_articles/physical_sciences/earth_science.json",
-        "lvl5_vital_articles/physical_sciences/physics.json",
-        "lvl5_vital_articles/technology/technology.json",
-        "lvl5_vital_articles/mathematics/mathematics.json",
-    ]
+    filenames = LEVEL_1_VITAL_ARTICLE_URLS \
+              + LEVEL_2_VITAL_ARTICLE_URLS \
+              + LEVEL_3_VITAL_ARTICLE_URLS \
+              + LEVEL_4_VITAL_ARTICLE_URLS \
+              + LEVEL_5_VITAL_ARTICLE_URLS
 
     articles = {}
     # Read all
@@ -222,6 +230,31 @@ def combine_all_articles():
     # Write
     with open(FILENAME, "w+") as outfile:
         json.dump(articles, outfile, indent=4)
+
+
+def get_vital_articles_at_level(level: int) -> Optional[List[str]]:
+    """Retrieve a list of vital articles at a given level."""
+    if level > 5 or level < 1:
+        return None
+    
+    urls_to_parse = []
+    if level == 1:  # yes, this is "naive fizz-buzz"-level code, but vital article levels likely wont grow past 5
+        urls_to_parse = LEVEL_1_VITAL_ARTICLE_URLS
+    elif level == 2:
+        urls_to_parse = LEVEL_2_VITAL_ARTICLE_URLS
+    elif level == 3:
+        urls_to_parse = LEVEL_3_VITAL_ARTICLE_URLS
+    elif level == 4:
+        urls_to_parse = LEVEL_4_VITAL_ARTICLE_URLS
+    else:
+        urls_to_parse = LEVEL_5_VITAL_ARTICLE_URLS
+
+    article_names = []
+    for url in urls_to_parse:
+        with open(url, "r") as infile:
+            article_names.extend(json.load(infile).keys())
+    
+    return article_names
 
 
 if __name__=='__main__':
