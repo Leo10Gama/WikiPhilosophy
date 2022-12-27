@@ -98,6 +98,7 @@ def start_race():
     while True:
         # Set number of racers
         num_racers = input("How many articles would you like to race? ")
+        print()
         if num_racers.isnumeric() and int(num_racers) > 0:
             num_racers = int(num_racers)
         else:
@@ -147,7 +148,7 @@ def start_race():
         # Make sure prediction is valid
         if not prediction.isnumeric() or int(prediction) > len(racers) or int(prediction) <= 0:
             print("Invalid prediction. Cancelling race...")
-            return
+            continue
 
         prediction = int(prediction)
         prediction -= 1  # move prediction from 1-indexed to 0-indexed (like the array)
