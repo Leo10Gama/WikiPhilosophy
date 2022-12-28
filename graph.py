@@ -89,9 +89,16 @@ def parse_page(page: Page) -> Tuple[Page, Edge]:
                 title = a_tag['title']
                 href = BASE + a_tag['href']
                 if (
-                    a_tag['href'].startswith("/wiki/Help:") 
-                    or a_tag['href'].startswith("/wiki/Wikipedia:")
+                    a_tag['href'].startswith("/wiki/Category:")
+                    or a_tag['href'].startswith("/wiki/File:")
+                    or a_tag['href'].startswith("/wiki/Help:")
+                    or a_tag['href'].startswith("/wiki/Portal:") 
                     or a_tag['href'].startswith("/wiki/Talk:")
+                    or a_tag['href'].startswith("/wiki/Template:")
+                    or a_tag['href'].startswith("/wiki/Template_talk:")
+                    or a_tag['href'].startswith("/wiki/Wikipedia:")
+                    or a_tag['href'].startswith("//")
+                    or a_tag['href'].startswith("http://")
                     or a_tag['href'].startswith("https://")
                 ): continue   # links to not-an-article
                 if a_tag.has_attr("class"):
@@ -107,6 +114,16 @@ def parse_page(page: Page) -> Tuple[Page, Edge]:
                             return parse_page(page)
                         head = some_head
                         title = head.text
+                        if (
+                            title.startswith("Category:")
+                            or title.startswith("File:")
+                            or title.startswith("Help:")
+                            or title.startswith("Portal:")
+                            or title.startswith("Talk:")
+                            or title.startswith("Template:")
+                            or title.startswith("Template talk:")
+                            or title.startswith("Wikipedia:")
+                        ): continue
                         href = get_url_from_title(title)
                 linked_page = Page(title, href)
                 return linked_page, Edge(page, linked_page)
@@ -215,7 +232,7 @@ def cleanup(filename: str, disconnected_articles=None):
     with open(filename, "r") as infile:
         edges = json.load(infile)  # read in json
 
-    remove_if_in = lambda x: "Paleolithic" in x
+    remove_if_in = lambda x: "choralwiki:" in x
     edges = {k: v for k, v in edges.items() if not remove_if_in(v)}  # remove items with name
 
     # for article in disconnected_articles:
@@ -226,6 +243,55 @@ def cleanup(filename: str, disconnected_articles=None):
         json.dump(edges, outfile, indent=4, sort_keys=True)  # rewrite json
 
 
+def get_edges() -> Dict[str, str]:
+    """Returns the cached dictionary of all edges."""
+
+    print("Retrieving edges...", end="", flush=True)
+    BASE_PATH = "cache/edges/"
+    extensions = [f"edges_{x}.json" for x in list("abcdefghijklmnopqrstuvwxyz") + ["num", "other"]]
+    edges = {}
+    for extension in extensions:
+        with open(BASE_PATH + extension, "r") as infile:
+            data = json.load(infile)
+            for base_title, linked_title in data.items():
+                edges[base_title] = linked_title
+    print("Done")
+    return edges
+
+
+def fix_lowercase_links():
+    """Cleanup method to proper-case article titles."""
+    items = list("abcdefghijklmn") + ["num", "o", "other"] + list("pqrstuvwxyz")
+    edge_links = [f"cache/edges/edges_{x}.json" for x in items]
+    for edge_link in edge_links:
+        print(f"Fixing {edge_link}...")
+        edges = {}
+        with open(edge_link, "r") as infile:
+            edges = json.load(infile)
+        for edge in edges.keys():
+            if not edges[edge]: continue
+            edges[edge] = edges[edge][0].upper() + edges[edge][1:]
+        with open(edge_link, "w+") as outfile:
+            json.dump(edges, outfile, indent=4, sort_keys=True)  # rewrite json
+
+
+def remove_invalid_links():
+    """Remove all files that link to articles that don't exist."""
+    articles = get_edges().keys()
+    items = list("abcdefghijklmn") + ["num", "o", "other"] + list("pqrstuvwxyz")
+    edge_links = [f"cache/edges/edges_{x}.json" for x in items]
+    for edge_link in edge_links:
+        print(f"Fixing {edge_link}...")
+        edges = {}
+        with open(edge_link, "r") as infile:
+            edges = json.load(infile)
+        items = {k: v for k, v in edges.items()}
+        for edge_key, edge_value in items.items():
+            if edge_value != "" and edge_value not in articles: del edges[edge_key]
+        with open(edge_link, "w+") as outfile:
+            json.dump(edges, outfile, indent=4, sort_keys=True)  # rewrite json
+
+
 if __name__=="__main__":
     items = list("abcdefghijklmn") + ["num", "o", "other"] + list("pqrstuvwxyz")
     article_links = [f"cache/articles/articles_{x}.json" for x in items]
@@ -234,10 +300,14 @@ if __name__=="__main__":
         # Do cleanup
         # disconnected_articles = distance_to_philosophy.get_unconnected_articles()
 
-        for extension in items:
-            filename = f"{STORAGE_LINK}edges_{extension}.json"
-            print(f"Cleaning {extension} files...")
-            cleanup(filename)
+        # fix_lowercase_links()
+
+        # remove_invalid_links()
+
+        # for extension in items:
+        #     filename = f"{STORAGE_LINK}edges_{extension}.json"
+        #     print(f"Cleaning {extension} files...")
+        #     cleanup(filename)
 
         # Run method
         with Pool(28) as p:
