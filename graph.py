@@ -87,12 +87,15 @@ def parse_page(page: Page) -> Tuple[Page, Edge]:
             for a_tag in a_tags:
                 if not a_tag or not a_tag.has_attr("title"): continue  # check tag exists and has a title
                 title = a_tag['title']
+                if title == "closed access publication \u2013 behind paywall": continue  # paywall icon; not a proper link
+                if title == "Alt=icon": continue  # portal icon; not a proper link
                 href = BASE + a_tag['href']
                 if (
                     a_tag['href'].startswith("/wiki/Category:")
                     or a_tag['href'].startswith("/wiki/File:")
                     or a_tag['href'].startswith("/wiki/Help:")
-                    or a_tag['href'].startswith("/wiki/Portal:") 
+                    or a_tag['href'].startswith("/wiki/Portal:")
+                    or a_tag['href'].startswith("/wiki/Special:")
                     or a_tag['href'].startswith("/wiki/Talk:")
                     or a_tag['href'].startswith("/wiki/Template:")
                     or a_tag['href'].startswith("/wiki/Template_talk:")
@@ -102,7 +105,7 @@ def parse_page(page: Page) -> Tuple[Page, Edge]:
                     or a_tag['href'].startswith("https://")
                 ): continue   # links to not-an-article
                 if a_tag.has_attr("class"):
-                    if a_tag['class'][0] == "new":          # links to page that doesn't exist, skip
+                    if a_tag['class'][0] == "new" or a_tag['class'][0] == "external":  # links to page that doesn't exist, skip
                         continue
                     if a_tag['class'][0] == "mw-redirect":  # links to redirect, follow it for new Page
                         new_soup = BeautifulSoup(requests.get(BASE + a_tag['href']).text, 'html.parser')
@@ -119,6 +122,7 @@ def parse_page(page: Page) -> Tuple[Page, Edge]:
                             or title.startswith("File:")
                             or title.startswith("Help:")
                             or title.startswith("Portal:")
+                            or title.startswith("Special:")
                             or title.startswith("Talk:")
                             or title.startswith("Template:")
                             or title.startswith("Template talk:")
@@ -232,7 +236,7 @@ def cleanup(filename: str, disconnected_articles=None):
     with open(filename, "r") as infile:
         edges = json.load(infile)  # read in json
 
-    remove_if_in = lambda x: "choralwiki:" in x
+    remove_if_in = lambda x: "Alt=icon" in x
     edges = {k: v for k, v in edges.items() if not remove_if_in(v)}  # remove items with name
 
     # for article in disconnected_articles:
@@ -304,10 +308,10 @@ if __name__=="__main__":
 
         # remove_invalid_links()
 
-        # for extension in items:
-        #     filename = f"{STORAGE_LINK}edges_{extension}.json"
-        #     print(f"Cleaning {extension} files...")
-        #     cleanup(filename)
+        for extension in items:
+            filename = f"{STORAGE_LINK}edges_{extension}.json"
+            print(f"Cleaning {extension} files...")
+            cleanup(filename)
 
         # Run method
         with Pool(28) as p:
