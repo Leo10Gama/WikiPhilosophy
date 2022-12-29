@@ -1,7 +1,8 @@
 """Module for computing interesting statistics about this phenomenon."""
 
 
-from collections import defaultdict
+from collections import defaultdict, deque
+import json
 from distance_to_philosophy import get_reverse_edges
 
 from get_to_philosophy import get_articles, get_edges
@@ -65,28 +66,92 @@ def compute_heat_graph():
             hmap[n] += hmap[child] + 1
 
     # Get terminating nodes
+    print("Getting terminating nodes (this may take a while...)")
     terminating_nodes = set()
+    TERMINATING_NODES_STORATE_URL = "cache/terminating_nodes.json"
     seen_nodes = set()
-    for article in edges.keys():
-        if article in seen_nodes: continue
-        path = [article]
-        while len(path) == len(set(path)):  # no duplicates
-            next_node = edges[path[-1]]
-            if next_node == "": break  # no links
-            path.append(next_node)
-            if next_node in seen_nodes: break
-            seen_nodes.add(next_node)
-        nodes_seen_this_batch = path
-        next_node = path[-1]
-        # Check for terminating nodes
-        while next_node not in terminating_nodes and next_node not in seen_nodes and len(path) > 1:
-            terminating_nodes.add(path.pop())
+    choice = input("Would you like to use cached value? (y/n): ").lower()
+    if choice == 'n':
+        print("Computing manually...")
+        count = 0
+        for article in edges.keys():
+            count += 1
+            if count % 100000 == 0: print(f"Checked {count:,d} articles so far...")
+            if article in seen_nodes: continue
+            path = [article]
+            nodes_seen_this_batch = set()
+            while len(path) == len(set(path)):  # no duplicates
+                next_node = edges[path[-1]]
+                if next_node == "": break  # no links
+                path.append(next_node)
+                if next_node in nodes_seen_this_batch: break
+                nodes_seen_this_batch.add(next_node)
             next_node = path[-1]
-        # Add to nodes we've seen
-        for node in nodes_seen_this_batch:
-            seen_nodes.add(node)
-    print(terminating_nodes)
+            # Check for terminating nodes
+            while next_node not in terminating_nodes and next_node not in seen_nodes and len(path) > 1:
+                terminating_nodes.add(path.pop())
+                next_node = path[-1]
+            # Add to nodes we've seen
+            for node in nodes_seen_this_batch:
+                seen_nodes.add(node)
+        print("Done!")
+        print("Writing to cache...")
+        with open(TERMINATING_NODES_STORATE_URL, "w+") as outfile:
+            json.dump({'nodes': list(terminating_nodes)}, outfile, indent=4)
+    else:
+        print("Using cache...")
+        with open(TERMINATING_NODES_STORATE_URL, 'r') as infile:
+            terminating_nodes = set(json.load(infile)['nodes'])
+
+
+    # Set up "visit" process
+    def visit(node: str):
+        """The process for visiting a node (doesn't work for terminating nodes)"""
+        if node in terminating_nodes: return    # don't count looping nodes (yet)
+        for child in reverse_edges[node]:
+            visit(child)                        # visit the child (recursive)
+            hmap[node] += hmap[child] + 1       # value = value of child + the child itself
+
+    # Do the visiting
+    print("Starting to visit nodes...")
+    count = 0
+    for node in terminating_nodes:
+        count += 1
+        if count % 1000 == 0: print(f"Visited {count:,d}/{len(terminating_nodes):,d} terminating nodes so far...")
+        for child_node in reverse_edges[node]:
+            visit(child_node)
+    print("Done!")
+
+    # Visit nodes in cycles
+    for node in terminating_nodes:
+        # get value for self
+        for child_node in reverse_edges[node]:
+            if child_node in terminating_nodes: continue    # don't count terminating nodes (yet)
+            hmap[node] += hmap[child_node] + 1              # value = value of child + the child itself
+        # share this value with other nodes in the cycle
+        if edges[node] == "": continue                      # if the node loops with itself (or has no links) do nothing
+        next_node = edges[node]
+        while next_node != node and next_node == "":        # go around the cycle, or until you hit a node with no links
+            hmap[next_node] += hmap[node]
+            next_node = edges[next_node]
+    # Add 1 to each, since each node in the cycle links to each once
+    for node in terminating_nodes:
+        hmap[node] += 1
+    
+    return hmap
 
 
 if __name__=='__main__':
-    compute_heat_graph()
+    hmap = compute_heat_graph()
+
+    # Reverse the heat map (i.e. index by number and not article title)
+    reverse_hmap = defaultdict(set)
+    for article, heat in hmap.items():
+        reverse_hmap[heat].add(article)
+
+    # Print the top 10 results
+    heat_values = list(reverse_hmap.keys())
+    heat_values.sort()
+    heat_values = heat_values[::-1]
+    for i in range(100):
+        print(f"{i+1}: {reverse_hmap[heat_values[i]]} -> {heat_values[i]}")
