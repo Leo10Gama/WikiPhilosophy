@@ -1,14 +1,16 @@
 """Module for computing interesting statistics about this phenomenon."""
 
 
-from collections import defaultdict, deque
+from audioop import reverse
+from collections import defaultdict
 import json
+from typing import DefaultDict
 from distance_to_philosophy import get_reverse_edges
 
-from get_to_philosophy import get_articles, get_edges
+from get_to_philosophy import get_edges
 
 
-def compute_heat_graph():
+def compute_heat_graph() -> DefaultDict[str, int]:
     """Compute a 'heat graph' of the articles and edges stored in the cache.
     
     In the context of this project, we will define a few concepts to make
@@ -58,12 +60,6 @@ def compute_heat_graph():
     # articles = get_articles()  # we really dont *need* articles i think?
     edges = get_edges()
     reverse_edges = get_reverse_edges(edges)
-
-    def visit_node(n: str):
-        """Visit a node, which essentially assigns it a value in the heat map."""
-        for child in reverse_edges[n]:
-            visit_node(child)  # if child has no children, this section will never be run anyway
-            hmap[n] += hmap[child] + 1
 
     # Get terminating nodes
     print("Getting terminating nodes (this may take a while...)")
@@ -125,14 +121,16 @@ def compute_heat_graph():
     # Visit nodes in cycles
     for node in terminating_nodes:
         # get value for self
+        additional_value = 0                                # prevent double-counting
         for child_node in reverse_edges[node]:
             if child_node in terminating_nodes: continue    # don't count terminating nodes (yet)
-            hmap[node] += hmap[child_node] + 1              # value = value of child + the child itself
+            additional_value += hmap[child_node] + 1        # value = value of child + the child itself
+        hmap[node] += additional_value
         # share this value with other nodes in the cycle
         if edges[node] == "": continue                      # if the node loops with itself (or has no links) do nothing
         next_node = edges[node]
-        while next_node != node and next_node == "":        # go around the cycle, or until you hit a node with no links
-            hmap[next_node] += hmap[node]
+        while next_node != node and next_node != "":        # go around the cycle, or until you hit a node with no links
+            hmap[next_node] += additional_value
             next_node = edges[next_node]
     # Add 1 to each, since each node in the cycle links to each once
     for node in terminating_nodes:
